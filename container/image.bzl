@@ -43,6 +43,7 @@ load(
     "//skylib:filetype.bzl",
     container_filetype = "container",
     deb_filetype = "deb",
+    rpm_filetype = "rpm",
     tar_filetype = "tar",
 )
 load(
@@ -116,6 +117,7 @@ def _build_layer(ctx, files=None, file_map=None, empty_files=None,
   args += ["--empty_file=%s" % f for f in empty_files or []]
   args += ["--tar=" + f.path for f in ctx.files.tars]
   args += ["--deb=" + f.path for f in ctx.files.debs if f.path.endswith(".deb")]
+  args += ["--rpm=" + f.path for f in ctx.files.rpms if f.path.endswith(".rpm")]
   for k in symlinks:
     if ':' in k:
       fail("The source of a symlink cannot contain ':', got: %s" % k)
@@ -127,7 +129,7 @@ def _build_layer(ctx, files=None, file_map=None, empty_files=None,
   ctx.action(
       executable = build_layer,
       arguments = ["--flagfile=" + arg_file.path],
-      inputs = files + file_map.values() + ctx.files.tars + ctx.files.debs + [arg_file],
+      inputs = files + file_map.values() + ctx.files.tars + ctx.files.debs + ctx.files.rpms + [arg_file],
       outputs = [layer],
       use_default_shell_env=True,
       mnemonic="ImageLayer"
@@ -311,6 +313,7 @@ _attrs = {
     "directory": attr.string(default = "/"),
     "tars": attr.label_list(allow_files = tar_filetype),
     "debs": attr.label_list(allow_files = deb_filetype),
+    "rpms": attr.label_list(allow_files = rpm_filetype),
     "files": attr.label_list(allow_files = True),
     "legacy_repository_naming": attr.bool(default = False),
     # TODO(mattmoor): Default this to False.
@@ -422,7 +425,7 @@ def _validate_command(name, argument):
 #
 #      # The directory in which to expand the specified files,
 #      # defaulting to '/'.
-#      # Only makes sense accompanying one of files/tars/debs.
+#      # Only makes sense accompanying one of files/tars/debs/rpms.
 #      directory="...",
 #
 #      # The set of archives to expand, or packages to install
@@ -430,6 +433,7 @@ def _validate_command(name, argument):
 #      files=[...],
 #      tars=[...],
 #      debs=[...],
+#      rpms=[...],
 #
 #      # The set of symlinks to create within a given layer.
 #      symlinks = {

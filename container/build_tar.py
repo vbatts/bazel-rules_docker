@@ -18,6 +18,7 @@ import os.path
 import sys
 import tarfile
 import tempfile
+#import rpm
 
 from tools.build_defs.pkg import archive
 from third_party.py import gflags
@@ -35,6 +36,8 @@ gflags.DEFINE_string(
 gflags.DEFINE_multistring('tar', [], 'A tar file to add to the layer')
 
 gflags.DEFINE_multistring('deb', [], 'A debian package to add to the layer')
+
+gflags.DEFINE_multistring('rpm', [], 'A RPM package to add to the layer')
 
 gflags.DEFINE_multistring(
     'link', [],
@@ -202,6 +205,11 @@ class TarFile(object):
         f.write(current.data)
       self.add_tar(tmpfile[1])
       os.remove(tmpfile[1])
+
+  def add_rpm(self, rpm):
+    """Extract an RPM package into the output tar.
+    """
+    r = None # placeholder
 
 
 def main(unused_argv):
